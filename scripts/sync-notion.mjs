@@ -251,16 +251,9 @@ function richTextToMd(richTexts) {
     .map((rt) => {
       let text = rt.plain_text;
 
-      // notion.so 超連結 → 轉為 #TAG（排除 blog）
-      if (rt.href && rt.href.includes("notion.so")) {
-        if (text.toLowerCase() === "blog") return "";
-        return `#${text.replace(/\s+/g, "-")}`;
-      }
-      // page mention（如 @blog）→ 排除 blog，其餘轉為 #TAG
-      if (rt.type === "mention" && rt.mention?.type === "page") {
-        if (text.toLowerCase() === "blog") return "";
-        return `#${text.replace(/\s+/g, "-")}`;
-      }
+      // notion.so 超連結 / page mention → 已收集為 tag，內文略過
+      if (rt.href && rt.href.includes("notion.so")) return "";
+      if (rt.type === "mention" && rt.mention?.type === "page") return "";
 
       if (rt.annotations.bold) text = `**${text}**`;
       if (rt.annotations.italic) text = `*${text}*`;
@@ -272,10 +265,30 @@ function richTextToMd(richTexts) {
     .join("");
 }
 
-async function blocksToMarkdown(blocks, pageSlug, indent = "") {
+/**
+ * 從 rich_text 陣列中收集 notion.so 連結 / page mention 作為 tag 名稱
+ * （排除 blog 本身）
+ */
+function extractTagsFromRichTexts(richTexts, collectedTags) {
+  for (const rt of richTexts) {
+    const text = rt.plain_text;
+    if (!text || text.toLowerCase() === "blog") continue;
+    if (rt.href && rt.href.includes("notion.so")) {
+      collectedTags.add(text);
+    } else if (rt.type === "mention" && rt.mention?.type === "page") {
+      collectedTags.add(text);
+    }
+  }
+}
+
+async function blocksToMarkdown(blocks, pageSlug, indent = "", collectedTags = new Set()) {
   let md = "";
 
   for (const block of blocks) {
+    // 從每個 block 的 rich_text 收集 tag
+    const richTexts = block[block.type]?.rich_text || [];
+    extractTagsFromRichTexts(richTexts, collectedTags);
+
     switch (block.type) {
       case "paragraph":
         md += `${indent}${richTextToMd(block.paragraph.rich_text)}\n\n`;
@@ -297,7 +310,7 @@ async function blocksToMarkdown(blocks, pageSlug, indent = "") {
         md += `${indent}- ${richTextToMd(block.bulleted_list_item.rich_text)}\n`;
         if (block.has_children) {
           const children = await getBlockChildren(block.id);
-          md += await blocksToMarkdown(children, pageSlug, indent + "  ");
+          md += await blocksToMarkdown(children, pageSlug, indent + "  ", collectedTags);
         }
         break;
 
@@ -305,7 +318,7 @@ async function blocksToMarkdown(blocks, pageSlug, indent = "") {
         md += `${indent}1. ${richTextToMd(block.numbered_list_item.rich_text)}\n`;
         if (block.has_children) {
           const children = await getBlockChildren(block.id);
-          md += await blocksToMarkdown(children, pageSlug, indent + "  ");
+          md += await blocksToMarkdown(children, pageSlug, indent + "  ", collectedTags);
         }
         break;
 
@@ -318,7 +331,7 @@ async function blocksToMarkdown(blocks, pageSlug, indent = "") {
         md += `<details>\n<summary>${richTextToMd(block.toggle.rich_text)}</summary>\n\n`;
         if (block.has_children) {
           const children = await getBlockChildren(block.id);
-          md += await blocksToMarkdown(children, pageSlug);
+          md += await blocksToMarkdown(children, pageSlug, "", collectedTags);
         }
         md += `</details>\n\n`;
         break;
@@ -518,16 +531,20 @@ async function main() {
     const title = getTitle(props);
     const slug = getSlug(props, pageId);
     const description = getDescription(props);
-    const tags = getTags(props);
+    const propTags = getTags(props);
     const category = getCategory(props);
     const publishedDate = new Date(page.created_time);
     const updatedDate = new Date(page.last_edited_time);
 
     console.log(`\n📝 處理: ${title} (${slug})`);
 
-    // 取得文章內容
+    // 取得文章內容，同時收集內文中的 notion.so 連結 / mention tag
     const blocks = await getBlockChildren(pageId);
-    const content = await blocksToMarkdown(blocks, slug);
+    const contentTags = new Set();
+    const content = await blocksToMarkdown(blocks, slug, "", contentTags);
+
+    // 合併 property tags 與內文收集的 tags（去重）
+    const tags = [...new Set([...propTags, ...contentTags])];
 
     // 組合 Fuwari 格式的 Front Matter
     const frontMatter = [

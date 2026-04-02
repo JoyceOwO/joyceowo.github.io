@@ -1,9 +1,12 @@
 # About
-This is the demo site for [Fuwari](https://github.com/saicaca/fuwari).
 
-::github{repo="saicaca/fuwari"}
+Hey, I'm **JoyceOwO** — a .NET developer who spends way too much time debugging things that "should just work."
 
-> ### Sources of images used in this site
-> - [Unsplash](https://unsplash.com/)
-> - [星と少女](https://www.pixiv.net/artworks/108916539) by [Stella](https://www.pixiv.net/users/93273965)
-> - [Rabbit - v1.4 Showcase](https://civitai.com/posts/586908) by [Rabbit_YourMajesty](https://civitai.com/user/Rabbit_YourMajesty)
+This blog is basically my personal notes dump.
+Whenever I get stuck on something and finally figure it out, I write it down here so I don't have to go through the same pain twice.
+
+If something here saves you some time, awesome. If not... well, at least it helped me. 😄
+
+---
+
+**Things I work with:** C# · .NET · Docker · SQL Server
