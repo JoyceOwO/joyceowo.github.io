@@ -2,7 +2,6 @@
 import type { CollectionEntry } from "astro:content";
 import path from "node:path";
 import { Icon } from "astro-icon/components";
-import { hitsCounterConfig } from "../config";
 import I18nKey from "../i18n/i18nKey";
 import { i18n } from "../i18n/translation";
 import { getDir } from "../utils/url-utils";
@@ -74,17 +73,6 @@ const { remarkPluginFrontmatter } = await entry.render();
             <div>
                 {remarkPluginFrontmatter.minutes} {" " + i18n(remarkPluginFrontmatter.minutes === 1 ? I18nKey.minuteCount : I18nKey.minutesCount)}
             </div>
-            {hitsCounterConfig.enable && hitsCounterConfig.baseURL && (
-                <>
-                    <div>|</div>
-                    <img
-                        src={`${hitsCounterConfig.baseURL}/api/hit?url=${encodeURIComponent(`https://joyceowo.github.io${url}`)}&label=瀏覽&icon=eye&color=%2300c8c0&style=flat`}
-                        alt="瀏覽次數"
-                        class="h-[18px]"
-                        loading="lazy"
-                    />
-                </>
-            )}
         </div>
 
     </div>
