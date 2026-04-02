@@ -12,7 +12,7 @@ export const siteConfig: SiteConfig = {
 	subtitle: "",
 	lang: "zh_TW", // Language code, e.g. 'en', 'zh_CN', 'ja', etc.
 	themeColor: {
-		hue: 250, // Default hue for the theme color, from 0 to 360. e.g. red: 0, teal: 200, cyan: 250, pink: 345
+		hue: 195, // Default hue for the theme color, from 0 to 360. e.g. red: 0, teal: 200, cyan: 250, pink: 345
 		fixed: false, // Hide the theme color picker for visitors
 	},
 	banner: {
@@ -29,6 +29,9 @@ export const siteConfig: SiteConfig = {
 		enable: true, // Display the table of contents on the right side of the post
 		depth: 2, // Maximum heading depth to show in the table, from 1 to 3
 	},
+	category: {
+		enable: false, // Show category widget and category metadata
+	},
 	favicon: [
 		// Leave this array empty to use the default favicon
 		// {
@@ -44,11 +47,6 @@ export const navBarConfig: NavBarConfig = {
 		LinkPreset.Home,
 		LinkPreset.Archive,
 		LinkPreset.About,
-		{
-			name: "GitHub",
-			url: "https://github.com/saicaca/fuwari", // Internal links should not include the base path, as it is automatically added
-			external: true, // Show an external link icon and will open in a new tab
-		},
 	],
 };
 
@@ -69,11 +67,6 @@ export const profileConfig: ProfileConfig = {
 		// 	icon: "fa6-brands:steam",
 		// 	url: "https://store.steampowered.com",
 		// },
-		{
-			name: "GitHub",
-			icon: "fa6-brands:github",
-			url: "https://github.com/saicaca/fuwari",
-		},
 	],
 };
 
@@ -86,5 +79,5 @@ export const licenseConfig: LicenseConfig = {
 export const expressiveCodeConfig: ExpressiveCodeConfig = {
 	// Note: Some styles (such as background color) are being overridden, see the astro.config.mjs file.
 	// Please select a dark theme, as this blog theme currently only supports dark background color
-	theme: "github-dark",
+	theme: "github-dark-dimmed",
 };

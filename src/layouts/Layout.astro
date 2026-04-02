@@ -1,7 +1,7 @@
 ---
-import "@fontsource/roboto/400.css";
-import "@fontsource/roboto/500.css";
-import "@fontsource/roboto/700.css";
+import "@fontsource-variable/jetbrains-mono";
+import "@fontsource-variable/jetbrains-mono/wght-italic.css";
+import "../styles/cyberpunk.css";
 
 import ConfigCarrier from "@components/ConfigCarrier.astro";
 import { profileConfig, siteConfig } from "@/config";
@@ -404,7 +404,17 @@ const setup = () => {
 			navbar.classList.add('navbar-hidden')
 		}
 	})
-	window.swup.hooks.on('content:replace', initCustomScrollbar)
+	window.swup.hooks.on('content:replace', () => {
+		// After Swup replaces content, skip re-running onload-animation on elements
+		// that are outside the swup containers (navbar, sidebar) — they should not
+		// replay their fade-in since Swup already handles the page fade.
+		document.querySelectorAll('#navbar .onload-animation, #sidebar .onload-animation')
+			.forEach(el => {
+				(el as HTMLElement).style.animationName = 'none';
+				(el as HTMLElement).style.opacity = '1';
+			});
+		initCustomScrollbar();
+	})
 	window.swup.hooks.on('visit:start', (visit: {to: {url: string}}) => {
 		// change banner height immediately when a link is clicked
 		const bodyElement = document.querySelector('body')
