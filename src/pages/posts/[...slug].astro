@@ -67,6 +67,12 @@ const jsonLd = {
                         {remarkPluginFrontmatter.minutes} {" " + i18n(remarkPluginFrontmatter.minutes === 1 ? I18nKey.minuteCount : I18nKey.minutesCount)}
                     </div>
                 </div>
+                <div class="flex flex-row items-center" id="hits-counter-wrapper" style="display:none">
+                    <div class="transition h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 text-black/50 dark:text-white/50 flex items-center justify-center mr-2">
+                        <Icon name="material-symbols:visibility-outline-rounded"></Icon>
+                    </div>
+                    <div class="text-sm"><span id="hits-count">...</span> 次瀏覽</div>
+                </div>
             </div>
 
             <!-- title -->
@@ -134,3 +140,43 @@ const jsonLd = {
     </div>
 
 </MainGridLayout>
+
+<script>
+import { hitsCounterConfig } from "@/config";
+
+function fetchHitsCount() {
+	if (!hitsCounterConfig.enable || !hitsCounterConfig.baseURL) return;
+
+	const wrapper = document.getElementById("hits-counter-wrapper");
+	const countEl = document.getElementById("hits-count");
+	if (!wrapper || !countEl) return;
+
+	const pageUrl = encodeURIComponent(window.location.href.split("?")[0]);
+	const apiUrl = `${hitsCounterConfig.baseURL}/api/hit?url=${pageUrl}&label=views&icon=eye&color=%2300c8c0&json=true`;
+
+	fetch(apiUrl)
+		.then((res) => res.json())
+		.then((data) => {
+			countEl.textContent = String(data.totalHits ?? data.total ?? "—");
+			wrapper.style.display = "";
+		})
+		.catch(() => {
+			wrapper.style.display = "none";
+		});
+}
+
+// Initial load
+fetchHitsCount();
+
+// Re-fetch on Swup navigation
+function setupSwup() {
+	window.swup.hooks.on("content:replace", () => {
+		fetchHitsCount();
+	});
+}
+if ((window as any).swup?.hooks) {
+	setupSwup();
+} else {
+	document.addEventListener("swup:enable", setupSwup);
+}
+</script>
