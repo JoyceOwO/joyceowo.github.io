@@ -1,9 +1,9 @@
 /* Page transition animations with Swup */
 html.is-changing .transition-swup-fade {
-    @apply transition-all duration-100
+    @apply transition-all duration-200
 }
 html.is-animating .transition-swup-fade {
-    @apply opacity-0 translate-y-2
+    @apply opacity-0
 }
 
 /* Fade-in animations for components */
