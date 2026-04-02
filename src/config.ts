@@ -76,7 +76,7 @@ export const licenseConfig: LicenseConfig = {
 
 export const ga4Config: GA4Config = {
 	enable: true,
-	measurementId: "G-HB122N637C", // 填入你的 GA4 Measurement ID，例如 'G-XXXXXXXXXX'
+	measurementId: "G-ZW44KKMXYH", // 填入你的 GA4 Measurement ID，例如 'G-XXXXXXXXXX'
 };
 
 export const hitsCounterConfig: HitsCounterConfig = {
