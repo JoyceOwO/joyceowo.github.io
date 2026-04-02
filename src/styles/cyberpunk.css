@@ -129,3 +129,49 @@
     border-left-color: #00c8c0;
     box-shadow: inset 2px 0 8px rgba(0, 200, 192, 0.08);
 }
+
+/* =====================================================
+   暗色模式文字亮度提升
+   背景 #020c14 極深，原本 white/75 等透明白不夠亮
+   ===================================================== */
+
+/* ── 文字工具類亮度覆寫 ── */
+:root.dark .text-90 {
+    color: rgba(255, 255, 255, 0.95);
+}
+:root.dark .text-75 {
+    color: rgba(255, 255, 255, 0.9);
+}
+:root.dark .text-50 {
+    color: rgba(255, 255, 255, 0.7);
+}
+:root.dark .text-30 {
+    color: rgba(255, 255, 255, 0.5);
+}
+:root.dark .text-25 {
+    color: rgba(255, 255, 255, 0.42);
+}
+
+/* ── 按鈕與導覽文字 ── */
+:root.dark .btn-plain {
+    color: rgba(255, 255, 255, 0.9);
+}
+:root.dark .btn-regular {
+    color: rgba(255, 255, 255, 0.9);
+}
+:root.dark .btn-card.disabled {
+    color: rgba(255, 255, 255, 0.2);
+}
+
+/* ── Markdown 文章內文 ── */
+:root.dark .prose.dark\:prose-invert {
+    --tw-prose-invert-body: rgba(255, 255, 255, 0.9);
+    --tw-prose-body: rgba(255, 255, 255, 0.9);
+    --tw-prose-invert-headings: #fff;
+    --tw-prose-headings: #fff;
+}
+
+/* ── 分隔線 / meta 分隔符提亮 ── */
+:root.dark .with-divider::before {
+    color: rgba(255, 255, 255, 0.35);
+}
