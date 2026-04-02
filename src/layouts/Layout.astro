@@ -4,7 +4,7 @@ import "@fontsource-variable/jetbrains-mono/wght-italic.css";
 import "../styles/cyberpunk.css";
 
 import ConfigCarrier from "@components/ConfigCarrier.astro";
-import { profileConfig, siteConfig } from "@/config";
+import { ga4Config, profileConfig, siteConfig } from "@/config";
 import {
 	AUTO_MODE,
 	BANNER_HEIGHT,
@@ -145,6 +145,21 @@ const bannerOffset =
 
 		<slot name="head"></slot>
 
+		<!-- GA4 -->
+		{ga4Config.enable && ga4Config.measurementId && (
+			<script is:inline define:vars={{ gaMeasurementId: ga4Config.measurementId }}>
+				// Load gtag.js asynchronously
+				const s = document.createElement('script');
+				s.async = true;
+				s.src = `https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`;
+				document.head.appendChild(s);
+				window.dataLayer = window.dataLayer || [];
+				function gtag(){window.dataLayer.push(arguments);}
+				gtag('js', new Date());
+				gtag('config', gaMeasurementId);
+			</script>
+		)}
+
 		<link rel="alternate" type="application/rss+xml" title={profileConfig.name} href={`${Astro.site}rss.xml`}/>
 
 	</head>
@@ -204,6 +219,7 @@ import {
 } from 'overlayscrollbars';
 import {getHue, getStoredTheme, setHue, setTheme} from "../utils/setting-utils";
 import {pathsEqual, url} from "../utils/url-utils";
+import { ga4Config } from '../config';
 import {
 	BANNER_HEIGHT,
 	BANNER_HEIGHT_HOME,
@@ -450,6 +466,13 @@ const setup = () => {
 		const heightExtend = document.getElementById('page-height-extend')
 		if (heightExtend) {
 			heightExtend.classList.remove('hidden')
+		}
+
+		// GA4: track page view on Swup navigation
+		if (ga4Config.enable && ga4Config.measurementId && typeof window.gtag === 'function') {
+			window.gtag('config', ga4Config.measurementId, {
+				page_path: window.location.pathname,
+			});
 		}
 	});
 	window.swup.hooks.on('visit:end', (_visit: {to: {url: string}}) => {

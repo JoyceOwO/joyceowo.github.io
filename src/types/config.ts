@@ -80,6 +80,11 @@ export type LicenseConfig = {
 	url: string;
 };
 
+export type GA4Config = {
+	enable: boolean;
+	measurementId: string; // e.g. 'G-XXXXXXXXXX'
+};
+
 export type LIGHT_DARK_MODE =
 	| typeof LIGHT_MODE
 	| typeof DARK_MODE
