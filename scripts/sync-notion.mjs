@@ -1,21 +1,26 @@
 /**
  * Notion → Fuwari Blog 同步腳本
  *
- * 從 Notion Database 抓取已發佈文章，轉換為 Fuwari 格式的 Markdown，
+ * 從 Notion 抓取已發佈文章，轉換為 Fuwari 格式的 Markdown，
  * 存入 src/content/posts/ 目錄。
  *
+ * 兩種模式：
+ *   模式 A（有 DATABASE_ID）：從指定 Database 查詢，支援 Relation 過濾
+ *   模式 B（無 DATABASE_ID）：用 Search API 搜尋整個 workspace
+ *
  * 環境變數：
- *   NOTION_TOKEN          - Notion Integration Token
- *   NOTION_DATABASE_ID    - Notion Database ID
- *   BLOG_PAGE_RELATION_ID - BLOG 關聯頁面 ID (可選，若有 Category Relation 過濾)
- *   BLOG_AUTHOR           - 作者名稱 (可選)
+ *   NOTION_TOKEN          - Notion Integration Token（必填）
+ *   NOTION_DATABASE_ID    - Notion Database ID（可選，有填用模式 A，沒填用模式 B）
+ *   BLOG_PAGE_RELATION_ID - BLOG 關聯頁面 ID（可選，過濾 Category Relation）
+ *   SYNC_WINDOW_HOURS     - 同步時間窗口，預設 25 小時（抓近一天有異動的頁面）
+ *   BLOG_AUTHOR           - 作者名稱（可選）
  */
 
+import crypto from "node:crypto";
 import fs from "node:fs";
+import https from "node:https";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import https from "node:https";
-import crypto from "node:crypto";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, "..");
@@ -27,6 +32,8 @@ const NOTION_API_VERSION = "2022-06-28";
 const NOTION_TOKEN = process.env.NOTION_TOKEN || "";
 const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID || "";
 const BLOG_PAGE_RELATION_ID = process.env.BLOG_PAGE_RELATION_ID || "";
+// 同步時間窗口（小時），預設 25 小時（涵蓋一天，留 1 小時緩衝）
+const SYNC_WINDOW_HOURS = Number(process.env.SYNC_WINDOW_HOURS) || 25;
 
 // ============================================================
 // Notion API helpers
@@ -50,20 +57,45 @@ async function notionFetch(endpoint, method = "GET", body = undefined) {
   return res.json();
 }
 
+/**
+ * 取得時間窗口起始點（N 小時前）
+ */
+function getSyncWindowStart() {
+  const now = new Date();
+  now.setHours(now.getHours() - SYNC_WINDOW_HOURS);
+  return now.toISOString();
+}
+
+/**
+ * 方式 A：從指定 Database 查詢（需要 NOTION_DATABASE_ID）
+ * - 支援 Category Relation 過濾
+ * - 支援 last_edited_time 時間窗口過濾
+ */
 async function queryDatabase() {
-  const filter = BLOG_PAGE_RELATION_ID
-    ? {
-        property: "Category",
-        relation: { contains: BLOG_PAGE_RELATION_ID },
-      }
-    : undefined;
+  const sinceTime = getSyncWindowStart();
+  console.log(`⏰ 只抓取 ${SYNC_WINDOW_HOURS} 小時內有異動的頁面（自 ${sinceTime}）`);
+
+  // 組合過濾條件
+  const filters = [];
+  if (BLOG_PAGE_RELATION_ID) {
+    filters.push({
+      property: "Category",
+      relation: { contains: BLOG_PAGE_RELATION_ID },
+    });
+  }
+  filters.push({
+    timestamp: "last_edited_time",
+    last_edited_time: { on_or_after: sinceTime },
+  });
+
+  const filter = filters.length === 1 ? filters[0] : { and: filters };
 
   let allPages = [];
   let cursor = undefined;
 
   do {
     const body = {
-      ...(filter && { filter }),
+      filter,
       sorts: [{ property: "last_edited_time", direction: "descending" }],
       ...(cursor && { start_cursor: cursor }),
     };
@@ -77,6 +109,83 @@ async function queryDatabase() {
   } while (cursor);
 
   return allPages;
+}
+
+/**
+ * 方式 B：用 Search API 搜尋整個 workspace（不需要 NOTION_DATABASE_ID）
+ * - 搜尋所有近期修改的 page
+ * - 檢查頁面內容是否有 mention 連到 @blog
+ */
+async function searchRecentPages() {
+  const sinceTime = getSyncWindowStart();
+  console.log(`⏰ 搜尋 ${SYNC_WINDOW_HOURS} 小時內有異動的頁面（自 ${sinceTime}）`);
+
+  let candidatePages = [];
+  let cursor = undefined;
+
+  do {
+    const body = {
+      filter: { property: "object", value: "page" },
+      sort: { direction: "descending", timestamp: "last_edited_time" },
+      ...(cursor && { start_cursor: cursor }),
+      page_size: 100,
+    };
+    const data = await notionFetch("/search", "POST", body);
+
+    // 只保留時間窗口內的頁面
+    for (const page of data.results) {
+      if (new Date(page.last_edited_time) >= new Date(sinceTime)) {
+        candidatePages.push(page);
+      } else {
+        // 因為已按時間排序，遇到超出窗口的就可以停了
+        cursor = undefined;
+        break;
+      }
+    }
+
+    if (cursor !== undefined) {
+      cursor = data.has_more ? data.next_cursor : undefined;
+    }
+  } while (cursor);
+
+  // 如果有設定 BLOG_PAGE_RELATION_ID，檢查每個頁面是否有 mention 連到 @blog
+  if (!BLOG_PAGE_RELATION_ID) return candidatePages;
+
+  console.log(`🔍 檢查 ${candidatePages.length} 個頁面是否有 @blog 連結...`);
+  const filteredPages = [];
+
+  for (const page of candidatePages) {
+    if (await pageHasBlogLink(page.id)) {
+      filteredPages.push(page);
+    }
+  }
+
+  return filteredPages;
+}
+
+/**
+ * 檢查頁面內容是否有 mention 連到 BLOG_PAGE_RELATION_ID
+ */
+async function pageHasBlogLink(pageId) {
+  const normalizedTarget = BLOG_PAGE_RELATION_ID.replace(/-/g, "");
+  try {
+    const data = await notionFetch(`/blocks/${pageId}/children`);
+    for (const block of data.results) {
+      const richTexts = block[block.type]?.rich_text || [];
+      for (const rt of richTexts) {
+        if (
+          rt.type === "mention" &&
+          rt.mention?.type === "page" &&
+          rt.mention?.page?.id?.replace(/-/g, "") === normalizedTarget
+        ) {
+          return true;
+        }
+      }
+    }
+  } catch (e) {
+    // 無法讀取，跳過
+  }
+  return false;
 }
 
 async function getBlockChildren(blockId) {
@@ -351,16 +460,25 @@ function isPublished(properties) {
 // ============================================================
 
 async function main() {
-  if (!NOTION_TOKEN || !NOTION_DATABASE_ID) {
-    console.error("❌ 缺少環境變數：NOTION_TOKEN 與 NOTION_DATABASE_ID 為必填");
+  if (!NOTION_TOKEN) {
+    console.error("❌ 缺少環境變數：NOTION_TOKEN 為必填");
     process.exit(1);
   }
 
   console.log("🔄 開始 Notion → Fuwari 同步...");
-  const state = loadSyncState();
-  const pages = await queryDatabase();
-  console.log(`📋 Notion 資料庫共 ${pages.length} 筆文章`);
 
+  // 自動選擇抓取方式
+  let pages;
+  if (NOTION_DATABASE_ID) {
+    console.log("📡 模式 A：從指定 Database 查詢");
+    pages = await queryDatabase();
+  } else {
+    console.log("📡 模式 B：用 Search API 搜尋 workspace（未設定 DATABASE_ID）");
+    pages = await searchRecentPages();
+  }
+  console.log(`📋 找到 ${pages.length} 筆近 ${SYNC_WINDOW_HOURS} 小時內有異動的文章`);
+
+  const state = loadSyncState();
   let created = 0;
   let updated = 0;
   let skipped = 0;

@@ -40,6 +40,7 @@ jobs:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           BLOG_PAGE_RELATION_ID: ${{ secrets.BLOG_PAGE_RELATION_ID }}
+          SYNC_WINDOW_HOURS: "25"
         run: node scripts/sync-notion.mjs
 
       - name: Check for changes
