@@ -469,8 +469,8 @@ const setup = () => {
 		}
 
 		// GA4: track page view on Swup navigation
-		if (ga4Config.enable && ga4Config.measurementId && typeof window.gtag === 'function') {
-			window.gtag('config', ga4Config.measurementId, {
+		if (ga4Config.enable && ga4Config.measurementId && typeof (window as any).gtag === 'function') {
+			(window as any).gtag('config', ga4Config.measurementId, {
 				page_path: window.location.pathname,
 			});
 		}
