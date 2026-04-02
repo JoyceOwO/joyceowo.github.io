@@ -2,8 +2,8 @@ name: Sync Notion & Deploy
 
 on:
   schedule:
-    # 每 6 小時執行一次（可自行調整）
-    - cron: "0 */6 * * *"
+    # 每天台灣時間早上 8 點（UTC 00:00）
+    - cron: "0 0 * * *"
   workflow_dispatch: # 允許手動觸發
 
 permissions:
