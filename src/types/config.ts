@@ -85,6 +85,11 @@ export type GA4Config = {
 	measurementId: string; // e.g. 'G-XXXXXXXXXX'
 };
 
+export type HitsCounterConfig = {
+	enable: boolean;
+	baseURL: string; // e.g. 'https://hitscounter.dev'
+};
+
 export type LIGHT_DARK_MODE =
 	| typeof LIGHT_MODE
 	| typeof DARK_MODE
