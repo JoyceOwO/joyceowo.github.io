@@ -1,7 +1,7 @@
 ---
-import "@fontsource/roboto/400.css";
-import "@fontsource/roboto/500.css";
-import "@fontsource/roboto/700.css";
+import "@fontsource-variable/jetbrains-mono";
+import "@fontsource-variable/jetbrains-mono/wght-italic.css";
+import "../styles/cyberpunk.css";
 
 import ConfigCarrier from "@components/ConfigCarrier.astro";
 import { profileConfig, siteConfig } from "@/config";
@@ -404,8 +404,27 @@ const setup = () => {
 			navbar.classList.add('navbar-hidden')
 		}
 	})
-	window.swup.hooks.on('content:replace', initCustomScrollbar)
+	window.swup.hooks.on('content:replace', () => {
+		// After Swup replaces <main> content, the new #content-wrapper still has
+		// .onload-animation (opacity:0 + fade-in-up). Remove it so only Swup's
+		// transition-swup-fade handles the fade-in — prevents double-flash.
+		const cw = document.getElementById('content-wrapper');
+		if (cw) {
+			cw.classList.remove('onload-animation');
+			cw.style.opacity = '1';
+		}
+		document.querySelectorAll('#swup-container .onload-animation').forEach(el => {
+			el.classList.remove('onload-animation');
+			(el as HTMLElement).style.opacity = '1';
+		});
+		initCustomScrollbar();
+	})
 	window.swup.hooks.on('visit:start', (visit: {to: {url: string}}) => {
+		// After first navigation, strip .onload-animation from elements outside
+		// Swup containers (navbar, sidebar) so they never re-run fade-in on subsequent visits.
+		document.querySelectorAll('#navbar, #sidebar, .footer')
+			.forEach(el => el.classList.remove('onload-animation'));
+
 		// change banner height immediately when a link is clicked
 		const bodyElement = document.querySelector('body')
 		if (pathsEqual(visit.to.url, url('/'))) {
