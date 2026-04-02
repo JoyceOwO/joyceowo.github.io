@@ -250,6 +250,18 @@ function richTextToMd(richTexts) {
   return richTexts
     .map((rt) => {
       let text = rt.plain_text;
+
+      // notion.so 超連結 → 轉為 #TAG（排除 blog）
+      if (rt.href && rt.href.includes("notion.so")) {
+        if (text.toLowerCase() === "blog") return "";
+        return `#${text.replace(/\s+/g, "-")}`;
+      }
+      // page mention（如 @blog）→ 排除 blog，其餘轉為 #TAG
+      if (rt.type === "mention" && rt.mention?.type === "page") {
+        if (text.toLowerCase() === "blog") return "";
+        return `#${text.replace(/\s+/g, "-")}`;
+      }
+
       if (rt.annotations.bold) text = `**${text}**`;
       if (rt.annotations.italic) text = `*${text}*`;
       if (rt.annotations.strikethrough) text = `~~${text}~~`;
@@ -398,9 +410,11 @@ function saveSyncState(state) {
 // ============================================================
 
 function getTitle(properties) {
+  // Search API 回傳的普通頁面，key 是小寫 "title"
   const titleProp =
     properties.Name?.title ||
     properties.Title?.title ||
+    properties.title?.title ||
     properties["名稱"]?.title ||
     [];
   return titleProp.map((t) => t.plain_text).join("") || "Untitled";
