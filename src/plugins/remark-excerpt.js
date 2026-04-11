@@ -2,13 +2,15 @@
 import { toString } from "mdast-util-to-string";
 
 /* Use the post's first paragraph as the excerpt.
-   If no standalone paragraph is found, fall back to the first
-   non-empty paragraph that follows the first heading. */
+   Fallback order:
+   1. First non-empty paragraph in the document
+   2. First non-empty paragraph after the first heading
+   3. First non-empty list item after the first heading */
 export function remarkExcerpt() {
 	return (tree, { data }) => {
 		let excerpt = "";
-		let foundHeading = false;
 
+		// Pass 1: first non-empty paragraph (original behaviour)
 		for (const node of tree.children) {
 			if (node.type === "paragraph") {
 				const text = toString(node).trim();
@@ -16,29 +18,25 @@ export function remarkExcerpt() {
 					excerpt = text;
 					break;
 				}
-				continue;
-			}
-
-			if (!foundHeading && node.type.startsWith("heading")) {
-				foundHeading = true;
-				continue;
-			}
-
-			// After the first heading, keep scanning for a paragraph
-			if (foundHeading) {
-				continue;
 			}
 		}
 
-		// If nothing found yet, scan children after first heading for a paragraph
+		// Pass 2: first non-empty paragraph or list item after the first heading
 		if (!excerpt) {
 			let pastHeading = false;
 			for (const node of tree.children) {
-				if (!pastHeading && node.type.startsWith("heading")) {
-					pastHeading = true;
+				if (!pastHeading) {
+					if (node.type.startsWith("heading")) {
+						pastHeading = true;
+					}
 					continue;
 				}
-				if (pastHeading && node.type === "paragraph") {
+				if (
+					node.type === "paragraph" ||
+					node.type === "bulleted_list_item" ||
+					node.type === "numbered_list_item" ||
+					node.type === "list"
+				) {
 					const text = toString(node).trim();
 					if (text) {
 						excerpt = text;
