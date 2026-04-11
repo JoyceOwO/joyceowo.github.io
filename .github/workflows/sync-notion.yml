@@ -43,6 +43,13 @@ jobs:
           SYNC_WINDOW_HOURS: "25"
         run: node scripts/sync-notion.mjs
 
+      - name: Backfill missing/outdated EN translations
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          BATCH_SIZE: "3"
+          BATCH_DELAY_MS: "5000"
+        run: node scripts/backfill-en.mjs
+
       - name: Check for changes
         id: check_changes
         run: |

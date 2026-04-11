@@ -11,6 +11,7 @@ import { LinkPreset } from "./types/config";
 
 export const siteConfig: SiteConfig = {
 	title: "沒墨的筆記本",
+	titleEn: "Inkless Notebook",
 	subtitle: "",
 	lang: "zh_TW", // Language code, e.g. 'en', 'zh_CN', 'ja', etc.
 	themeColor: {
@@ -52,6 +53,7 @@ export const profileConfig: ProfileConfig = {
 	avatar: "assets/images/custom-demo-avatar.jpg", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
 	name: "JoyceOwO",
 	bio: "把路上的阻礙，堆成這裡的筆記",
+	bioEn: "Turning roadblocks into notes, one problem at a time.",
 	links: [
 		// {
 		// 	name: "Twitter",

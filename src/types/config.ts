@@ -2,6 +2,7 @@ import type { AUTO_MODE, DARK_MODE, LIGHT_MODE } from "@constants/constants";
 
 export type SiteConfig = {
 	title: string;
+	titleEn?: string;
 	subtitle: string;
 
 	lang:
@@ -67,6 +68,7 @@ export type ProfileConfig = {
 	avatar?: string;
 	name: string;
 	bio?: string;
+	bioEn?: string;
 	links: {
 		name: string;
 		url: string;
