@@ -3,17 +3,36 @@ import { Icon } from "astro-icon/components";
 import { navBarConfig, siteConfig } from "../config";
 import { LinkPresets } from "../constants/link-presets";
 import { LinkPreset, type NavBarLink } from "../types/config";
+import { getTranslation } from "../i18n/translation";
 import { url } from "../utils/url-utils";
 import LightDarkSwitch from "./LightDarkSwitch.svelte";
 import Search from "./Search.svelte";
 import DisplaySettings from "./widget/DisplaySettings.svelte";
 import NavMenuPanel from "./widget/NavMenuPanel.astro";
 
+interface Props {
+	lang?: string;
+}
+const { lang } = Astro.props;
 const className = Astro.props.class;
 
-const isEnPage = Astro.url.pathname.startsWith(
-	`${import.meta.env.BASE_URL}en/`,
-) || Astro.url.pathname === `${import.meta.env.BASE_URL}en`;
+const isEnPage = lang === "en" ||
+	Astro.url.pathname.startsWith(`${import.meta.env.BASE_URL}en/`) ||
+	Astro.url.pathname === `${import.meta.env.BASE_URL}en`;
+
+const t = getTranslation(isEnPage ? "en" : siteConfig.lang);
+const siteTitle = isEnPage ? (siteConfig.titleEn || siteConfig.title) : siteConfig.title;
+
+// EN pages root at /en/, ZH pages root at /
+const homeUrl = isEnPage ? url("/en/") : url("/");
+const archiveUrl = isEnPage ? url("/en/archive/") : url("/archive/");
+const aboutUrl = url("/about/");
+
+const EN_LINK_MAP: Record<string, string> = {
+	"/": "/en/",
+	"/archive/": "/en/archive/",
+	"/about/": "/about/",
+};
 
 let links: NavBarLink[] = navBarConfig.links.map(
 	(item: NavBarLink | LinkPreset): NavBarLink => {
@@ -23,16 +42,31 @@ let links: NavBarLink[] = navBarConfig.links.map(
 		return item;
 	},
 );
+
+// For EN pages: translate link names and remap URLs to /en/* where applicable
+if (isEnPage) {
+	links = links.map((l) => ({
+		...l,
+		name: l.name === LinkPresets[LinkPreset.Home].name
+			? t.home
+			: l.name === LinkPresets[LinkPreset.Archive].name
+			? t.archive
+			: l.name === LinkPresets[LinkPreset.About].name
+			? t.about
+			: l.name,
+		url: EN_LINK_MAP[l.url] ?? l.url,
+	}));
+}
 ---
 <div id="navbar" class="z-50 onload-animation">
     <div class="absolute h-8 left-0 right-0 -top-8 bg-[var(--card-bg)] transition"></div> <!-- used for onload animation -->
     <div class:list={[
         className,
         "card-base !overflow-visible max-w-[var(--page-width)] h-[4.5rem] !rounded-t-none mx-auto flex items-center justify-between px-4"]}>
-        <a href={url('/')} class="btn-plain scale-animation rounded-lg h-[3.25rem] px-5 font-bold active:scale-95">
+        <a href={homeUrl} class="btn-plain scale-animation rounded-lg h-[3.25rem] px-5 font-bold active:scale-95">
             <div class="flex flex-row text-[var(--primary)] items-center text-md">
                 <Icon name="material-symbols:home-outline-rounded" class="text-[1.75rem] mb-1 mr-2" />
-                {siteConfig.title}
+                {siteTitle}
             </div>
         </a>
         <div class="hidden md:flex">
@@ -114,6 +148,11 @@ function loadButtonScript() {
 }
 
 loadButtonScript();
+
+// Re-bind after Swup replaces #navbar
+document.addEventListener('swup:page:view', () => {
+    loadButtonScript();
+});
 </script>
 
 {import.meta.env.PROD && <script is:inline define:vars={{scriptUrl: url('/pagefind/pagefind.js')}}>
