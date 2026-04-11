@@ -11,6 +11,10 @@ import NavMenuPanel from "./widget/NavMenuPanel.astro";
 
 const className = Astro.props.class;
 
+const isEnPage = Astro.url.pathname.startsWith(
+	`${import.meta.env.BASE_URL}en/`,
+) || Astro.url.pathname === `${import.meta.env.BASE_URL}en`;
+
 let links: NavBarLink[] = navBarConfig.links.map(
 	(item: NavBarLink | LinkPreset): NavBarLink => {
 		if (typeof item === "number") {
@@ -44,6 +48,14 @@ let links: NavBarLink[] = navBarConfig.links.map(
             })}
         </div>
         <div class="flex">
+            <!-- Language toggle: ZH ↔ EN -->
+            <a
+                aria-label={isEnPage ? "切換至中文" : "Switch to English"}
+                href={isEnPage ? url("/") : url("/en/")}
+                class="btn-plain scale-animation rounded-lg h-11 px-3 font-bold active:scale-90 text-sm tracking-wide"
+            >
+                {isEnPage ? "中文" : "EN"}
+            </a>
             <!--<SearchPanel client:load>-->
             <Search client:only="svelte"></Search>
             {!siteConfig.themeColor.fixed && (

@@ -18,18 +18,38 @@ async function getRawSortedPosts() {
 }
 
 export async function getSortedPosts() {
+	// Returns ZH posts only (lang !== "en") for the main listing.
+	// The raw list (all languages) is used internally by EN-specific helpers.
 	const sorted = await getRawSortedPosts();
+	const zhSorted = sorted.filter((p) => p.data.lang !== "en");
 
-	for (let i = 1; i < sorted.length; i++) {
-		sorted[i].data.nextSlug = sorted[i - 1].slug;
-		sorted[i].data.nextTitle = sorted[i - 1].data.title;
+	for (let i = 1; i < zhSorted.length; i++) {
+		zhSorted[i].data.nextSlug = zhSorted[i - 1].slug;
+		zhSorted[i].data.nextTitle = zhSorted[i - 1].data.title;
 	}
-	for (let i = 0; i < sorted.length - 1; i++) {
-		sorted[i].data.prevSlug = sorted[i + 1].slug;
-		sorted[i].data.prevTitle = sorted[i + 1].data.title;
+	for (let i = 0; i < zhSorted.length - 1; i++) {
+		zhSorted[i].data.prevSlug = zhSorted[i + 1].slug;
+		zhSorted[i].data.prevTitle = zhSorted[i + 1].data.title;
 	}
 
-	return sorted;
+	return zhSorted;
+}
+
+/** Returns EN posts only, sorted by date, with EN-only prev/next links. */
+export async function getSortedEnPosts() {
+	const sorted = await getRawSortedPosts();
+	const enSorted = sorted.filter((p) => p.data.lang === "en");
+
+	for (let i = 1; i < enSorted.length; i++) {
+		enSorted[i].data.nextSlug = enSorted[i - 1].slug;
+		enSorted[i].data.nextTitle = enSorted[i - 1].data.title;
+	}
+	for (let i = 0; i < enSorted.length - 1; i++) {
+		enSorted[i].data.prevSlug = enSorted[i + 1].slug;
+		enSorted[i].data.prevTitle = enSorted[i + 1].data.title;
+	}
+
+	return enSorted;
 }
 export type PostForList = {
 	slug: string;

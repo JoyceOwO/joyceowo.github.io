@@ -5,7 +5,7 @@ import Markdown from "@components/misc/Markdown.astro";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
-import { getSortedPosts } from "@utils/content-utils";
+import { getSortedPosts, getSortedEnPosts } from "@utils/content-utils";
 import { getDir, getPostUrlBySlug } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 import { licenseConfig } from "src/config";
@@ -15,8 +15,12 @@ import { hitsCounterConfig, profileConfig, siteConfig } from "../../config";
 import { formatDateToYYYYMMDD } from "../../utils/date-utils";
 
 export async function getStaticPaths() {
-	const blogEntries = await getSortedPosts();
-	return blogEntries.map((entry) => ({
+	// Include both ZH and EN posts so their detail pages are generated.
+	const [zhEntries, enEntries] = await Promise.all([
+		getSortedPosts(),
+		getSortedEnPosts(),
+	]);
+	return [...zhEntries, ...enEntries].map((entry) => ({
 		params: { slug: entry.slug },
 		props: { entry },
 	}));

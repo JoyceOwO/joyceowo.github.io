@@ -562,7 +562,7 @@ async function main() {
       "",
     ].join("\n");
 
-    // 寫入檔案
+    // 寫入中文檔案
     const filePath = path.join(POSTS_DIR, `${slug}.md`);
     const isNew = !fs.existsSync(filePath);
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
