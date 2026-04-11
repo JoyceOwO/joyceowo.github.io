@@ -11,10 +11,10 @@ import DisplaySettings from "./widget/DisplaySettings.svelte";
 import NavMenuPanel from "./widget/NavMenuPanel.astro";
 
 interface Props {
+	class?: string;
 	lang?: string;
 }
-const { lang } = Astro.props;
-const className = Astro.props.class;
+const { lang, class: className } = Astro.props;
 
 const isEnPage = lang === "en" ||
 	Astro.url.pathname.startsWith(`${import.meta.env.BASE_URL}en/`) ||
@@ -25,8 +25,6 @@ const siteTitle = isEnPage ? (siteConfig.titleEn || siteConfig.title) : siteConf
 
 // EN pages root at /en/, ZH pages root at /
 const homeUrl = isEnPage ? url("/en/") : url("/");
-const archiveUrl = isEnPage ? url("/en/archive/") : url("/archive/");
-const aboutUrl = url("/about/");
 
 const EN_LINK_MAP: Record<string, string> = {
 	"/": "/en/",
