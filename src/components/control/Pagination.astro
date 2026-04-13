@@ -47,7 +47,7 @@ if (r < page.lastPage) pages.push(page.lastPage);
 
 const getPageUrl = (p: number) => {
 	// Derive base path from current URL to respect locale prefix (e.g. /en/)
-	const basePath = Astro.url.pathname.replace(/\/(\d+\/)?$/, '');
+	const basePath = Astro.url.pathname.replace(/\/(\d+\/)?$/, "");
 	if (p === 1) return `${basePath}/`;
 	return `${basePath}/${p}/`;
 };
