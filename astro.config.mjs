@@ -29,6 +29,13 @@ export default defineConfig({
 	site: "https://joyceowo.github.io/",
 	base: "/",
 	trailingSlash: "always",
+	i18n: {
+		defaultLocale: "zh-tw",
+		locales: ["zh-tw", "en"],
+		routing: {
+			prefixDefaultLocale: false,
+		},
+	},
 	integrations: [
 		tailwind({
 			nesting: true,
