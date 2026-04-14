@@ -9,11 +9,6 @@ export let tags: string[];
 export let categories: string[];
 export let sortedPosts: Post[] = [];
 
-const params = new URLSearchParams(window.location.search);
-tags = params.has("tag") ? params.getAll("tag") : [];
-categories = params.has("category") ? params.getAll("category") : [];
-const uncategorized = params.get("uncategorized");
-
 interface Post {
 	slug: string;
 	data: {
@@ -41,28 +36,8 @@ function formatTag(tagList: string[]) {
 	return tagList.map((t) => `#${t}`).join(" ");
 }
 
-onMount(async () => {
-	let filteredPosts: Post[] = sortedPosts;
-
-	if (tags.length > 0) {
-		filteredPosts = filteredPosts.filter(
-			(post) =>
-				Array.isArray(post.data.tags) &&
-				post.data.tags.some((tag) => tags.includes(tag)),
-		);
-	}
-
-	if (categories.length > 0) {
-		filteredPosts = filteredPosts.filter(
-			(post) => post.data.category && categories.includes(post.data.category),
-		);
-	}
-
-	if (uncategorized) {
-		filteredPosts = filteredPosts.filter((post) => !post.data.category);
-	}
-
-	const grouped = filteredPosts.reduce(
+function buildGroups(posts: Post[]): Group[] {
+	const grouped = posts.reduce(
 		(acc, post) => {
 			const year = post.data.published.getFullYear();
 			if (!acc[year]) {
@@ -80,8 +55,39 @@ onMount(async () => {
 	}));
 
 	groupedPostsArray.sort((a, b) => b.year - a.year);
+	return groupedPostsArray;
+}
 
-	groups = groupedPostsArray;
+// SSR 初次渲染：顯示全部文章（無法讀 URL 參數）
+groups = buildGroups(sortedPosts);
+
+onMount(() => {
+	const params = new URLSearchParams(window.location.search);
+	const urlTags = params.has("tag") ? params.getAll("tag") : [];
+	const urlCategories = params.has("category") ? params.getAll("category") : [];
+	const uncategorized = params.get("uncategorized");
+
+	let filteredPosts: Post[] = sortedPosts;
+
+	if (urlTags.length > 0) {
+		filteredPosts = filteredPosts.filter(
+			(post) =>
+				Array.isArray(post.data.tags) &&
+				post.data.tags.some((tag) => urlTags.includes(tag)),
+		);
+	}
+
+	if (urlCategories.length > 0) {
+		filteredPosts = filteredPosts.filter(
+			(post) => post.data.category && urlCategories.includes(post.data.category),
+		);
+	}
+
+	if (uncategorized) {
+		filteredPosts = filteredPosts.filter((post) => !post.data.category);
+	}
+
+	groups = buildGroups(filteredPosts);
 });
 </script>
 
