@@ -1,21 +1,19 @@
 ---
 import ArchivePanel from "@components/ArchivePanel.svelte";
-import I18nKey from "@i18n/i18nKey";
-import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { siteConfig } from "@/config";
 import {
 	getCategoryList,
 	getSortedPostsList,
 	getTagList,
-} from "../utils/content-utils";
+} from "../../utils/content-utils";
 
-const sortedPostsList = await getSortedPostsList();
-const tagList = await getTagList();
-const categoryList = siteConfig.category.enable ? await getCategoryList() : [];
+const sortedPostsList = await getSortedPostsList("en");
+const tagList = await getTagList("en");
+const categoryList = siteConfig.category.enable ? await getCategoryList("en") : [];
 ---
 
-<MainGridLayout title={i18n(I18nKey.archive)}>
+<MainGridLayout lang="en" title="Archive" description="English archive">
     <ArchivePanel
         sortedPosts={sortedPostsList}
         tags={tagList.map(t => t.name)}
@@ -23,4 +21,3 @@ const categoryList = siteConfig.category.enable ? await getCategoryList() : [];
         client:load
     ></ArchivePanel>
 </MainGridLayout>
-

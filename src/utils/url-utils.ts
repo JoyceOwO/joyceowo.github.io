@@ -16,19 +16,21 @@ export function getPostUrlBySlug(slug: string): string {
 	return url(`/posts/${slug}/`);
 }
 
-export function getTagUrl(tag: string): string {
-	if (!tag) return url("/archive/");
-	return url(`/archive/?tag=${encodeURIComponent(tag.trim())}`);
+export function getTagUrl(tag: string, lang?: string): string {
+	const prefix = lang === "en" ? "/en" : "";
+	if (!tag) return url(`${prefix}/archive/`);
+	return url(`${prefix}/archive/?tag=${encodeURIComponent(tag.trim())}`);
 }
 
-export function getCategoryUrl(category: string | null): string {
+export function getCategoryUrl(category: string | null, lang?: string): string {
+	const prefix = lang === "en" ? "/en" : "";
 	if (
 		!category ||
 		category.trim() === "" ||
 		category.trim().toLowerCase() === i18n(I18nKey.uncategorized).toLowerCase()
 	)
-		return url("/archive/?uncategorized=true");
-	return url(`/archive/?category=${encodeURIComponent(category.trim())}`);
+		return url(`${prefix}/archive/?uncategorized=true`);
+	return url(`${prefix}/archive/?category=${encodeURIComponent(category.trim())}`);
 }
 
 export function getDir(path: string): string {

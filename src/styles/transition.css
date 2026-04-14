@@ -6,6 +6,16 @@ html.is-animating .transition-swup-fade {
     @apply opacity-0
 }
 
+/* Prevent navbar & sidebar from re-animating on Swup page transitions.
+   On first load swup-enabled is not yet set, so onload-animation plays normally.
+   On subsequent navigations the replaced HTML is shown instantly. */
+html.swup-enabled #navbar.onload-animation,
+html.swup-enabled #sidebar.onload-animation,
+html.swup-enabled #sidebar .onload-animation {
+    animation: none;
+    opacity: 1;
+}
+
 /* Fade-in animations for components */
 @keyframes fade-in-up {
     0% {
