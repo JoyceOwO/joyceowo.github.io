@@ -10,7 +10,9 @@ import {
 
 const sortedPostsList = await getSortedPostsList("en");
 const tagList = await getTagList("en");
-const categoryList = siteConfig.category.enable ? await getCategoryList("en") : [];
+const categoryList = siteConfig.category.enable
+	? await getCategoryList("en")
+	: [];
 ---
 
 <MainGridLayout lang="en" title="Archive" description="English archive">
