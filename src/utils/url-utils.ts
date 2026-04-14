@@ -30,7 +30,9 @@ export function getCategoryUrl(category: string | null, lang?: string): string {
 		category.trim().toLowerCase() === i18n(I18nKey.uncategorized).toLowerCase()
 	)
 		return url(`${prefix}/archive/?uncategorized=true`);
-	return url(`${prefix}/archive/?category=${encodeURIComponent(category.trim())}`);
+	return url(
+		`${prefix}/archive/?category=${encodeURIComponent(category.trim())}`,
+	);
 }
 
 export function getDir(path: string): string {

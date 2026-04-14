@@ -79,7 +79,8 @@ onMount(() => {
 
 	if (urlCategories.length > 0) {
 		filteredPosts = filteredPosts.filter(
-			(post) => post.data.category && urlCategories.includes(post.data.category),
+			(post) =>
+				post.data.category && urlCategories.includes(post.data.category),
 		);
 	}
 

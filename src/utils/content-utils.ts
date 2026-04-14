@@ -1,7 +1,7 @@
+import { type CollectionEntry, getCollection } from "astro:content";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import { getCategoryUrl } from "@utils/url-utils.ts";
-import { type CollectionEntry, getCollection } from "astro:content";
 
 // // Retrieve posts and sort them by publication date
 async function getRawSortedPosts() {
@@ -55,12 +55,15 @@ export type PostForList = {
 	slug: string;
 	data: CollectionEntry<"posts">["data"];
 };
-export async function getSortedPostsList(lang?: string): Promise<PostForList[]> {
+export async function getSortedPostsList(
+	lang?: string,
+): Promise<PostForList[]> {
 	const sortedFullPosts = await getRawSortedPosts();
 
-	const filtered = lang === "en"
-		? sortedFullPosts.filter((p) => p.data.lang === "en")
-		: sortedFullPosts.filter((p) => p.data.lang !== "en");
+	const filtered =
+		lang === "en"
+			? sortedFullPosts.filter((p) => p.data.lang === "en")
+			: sortedFullPosts.filter((p) => p.data.lang !== "en");
 
 	const sortedPostsList = filtered.map((post) => ({
 		slug: post.slug,
@@ -79,9 +82,10 @@ export async function getTagList(lang?: string): Promise<Tag[]> {
 		return import.meta.env.PROD ? data.draft !== true : true;
 	});
 
-	allBlogPosts = lang === "en"
-		? allBlogPosts.filter((p) => p.data.lang === "en")
-		: allBlogPosts.filter((p) => p.data.lang !== "en");
+	allBlogPosts =
+		lang === "en"
+			? allBlogPosts.filter((p) => p.data.lang === "en")
+			: allBlogPosts.filter((p) => p.data.lang !== "en");
 
 	const countMap: { [key: string]: number } = {};
 	allBlogPosts.forEach((post: { data: { tags: string[] } }) => {
@@ -110,9 +114,10 @@ export async function getCategoryList(lang?: string): Promise<Category[]> {
 		return import.meta.env.PROD ? data.draft !== true : true;
 	});
 
-	allBlogPosts = lang === "en"
-		? allBlogPosts.filter((p) => p.data.lang === "en")
-		: allBlogPosts.filter((p) => p.data.lang !== "en");
+	allBlogPosts =
+		lang === "en"
+			? allBlogPosts.filter((p) => p.data.lang === "en")
+			: allBlogPosts.filter((p) => p.data.lang !== "en");
 	const count: { [key: string]: number } = {};
 	allBlogPosts.forEach((post: { data: { category: string } }) => {
 		if (!post.data.category) {
