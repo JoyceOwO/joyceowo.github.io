@@ -538,6 +538,13 @@ async function main() {
 
     console.log(`\n📝 處理: ${title} (${slug})`);
 
+    // 更新時先清空該文章的圖片目錄，確保不殘留舊圖片
+    const imgDir = path.join(IMAGES_DIR, slug);
+    if (fs.existsSync(imgDir)) {
+      fs.rmSync(imgDir, { recursive: true });
+      console.log(`  🗑️ 清空舊圖片目錄: ${slug}/`);
+    }
+
     // 取得文章內容，同時收集內文中的 notion.so 連結 / mention tag
     const blocks = await getBlockChildren(pageId);
     const contentTags = new Set();
