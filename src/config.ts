@@ -12,7 +12,8 @@ import { LinkPreset } from "./types/config";
 export const siteConfig: SiteConfig = {
 	title: "沒墨的筆記本",
 	titleEn: "Inkless Notebook",
-	subtitle: "",
+	subtitle: "把路上的阻礙，堆成這裡的筆記",
+	subtitleEn: "Turning roadblocks into notes, one problem at a time.",
 	lang: "zh_TW", // Language code, e.g. 'en', 'zh_CN', 'ja', etc.
 	themeColor: {
 		hue: 195, // Default hue for the theme color, from 0 to 360. e.g. red: 0, teal: 200, cyan: 250, pink: 345
