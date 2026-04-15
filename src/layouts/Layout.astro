@@ -48,9 +48,13 @@ banner = siteConfig.banner.src;
 
 const enableBanner = siteConfig.banner.enable;
 
-const isEnLang = lang === 'en';
-const displayTitle = isEnLang && siteConfig.titleEn ? siteConfig.titleEn : siteConfig.title;
-const displaySubtitle = isEnLang && siteConfig.subtitleEn ? siteConfig.subtitleEn : siteConfig.subtitle;
+const isEnLang = lang === "en";
+const displayTitle =
+	isEnLang && siteConfig.titleEn ? siteConfig.titleEn : siteConfig.title;
+const displaySubtitle =
+	isEnLang && siteConfig.subtitleEn
+		? siteConfig.subtitleEn
+		: siteConfig.subtitle;
 
 let pageTitle: string;
 if (title) {
