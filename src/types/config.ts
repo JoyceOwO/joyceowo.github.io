@@ -69,6 +69,7 @@ export type ProfileConfig = {
 	name: string;
 	bio?: string;
 	bioEn?: string;
+	sponsorUrl?: string;
 	links: {
 		name: string;
 		url: string;

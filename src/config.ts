@@ -54,6 +54,7 @@ export const profileConfig: ProfileConfig = {
 	name: "JoyceOwO",
 	bio: "把路上的阻礙，堆成這裡的筆記",
 	bioEn: "Turning roadblocks into notes, one problem at a time.",
+	sponsorUrl: "https://paypal.me/OwOJoyce", // 填入你的 PayPal.me 連結
 	links: [
 		// {
 		// 	name: "Twitter",
