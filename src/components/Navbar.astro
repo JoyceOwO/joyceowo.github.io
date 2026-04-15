@@ -158,6 +158,8 @@ document.addEventListener('swup:page:view', () => {
 </script>
 
 {import.meta.env.PROD && <script is:inline define:vars={{scriptUrl: url('/pagefind/pagefind.js')}}>
+var _pagefindCurrentLang = document.documentElement.lang || 'zh-TW';
+
 async function loadPagefind() {
     try {
         const response = await fetch(scriptUrl, { method: 'HEAD' });
@@ -172,19 +174,35 @@ async function loadPagefind() {
         });
 
         window.pagefind = pagefind;
+        _pagefindCurrentLang = document.documentElement.lang || 'zh-TW';
 
         document.dispatchEvent(new CustomEvent('pagefindready'));
-        console.log('Pagefind loaded and initialized successfully, event dispatched.');
+        console.log('Pagefind loaded and initialized successfully for lang:', _pagefindCurrentLang);
     } catch (error) {
         console.error('Failed to load Pagefind:', error);
         window.pagefind = {
             search: () => Promise.resolve({ results: [] }),
             options: () => Promise.resolve(),
+            destroy: () => Promise.resolve(),
         };
         document.dispatchEvent(new CustomEvent('pagefindloaderror'));
         console.log('Pagefind load error, event dispatched.');
     }
 }
+
+async function reinitPagefind() {
+    var newLang = document.documentElement.lang || 'zh-TW';
+    if (newLang === _pagefindCurrentLang) return;
+    console.log('Language changed from', _pagefindCurrentLang, 'to', newLang, '— reinitializing Pagefind');
+    if (window.pagefind && window.pagefind.destroy) {
+        await window.pagefind.destroy();
+    }
+    await loadPagefind();
+}
+
+document.addEventListener('swup:page:view', function() {
+    reinitPagefind();
+});
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', loadPagefind);
