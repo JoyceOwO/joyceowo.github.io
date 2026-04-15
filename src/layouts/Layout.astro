@@ -3,6 +3,7 @@ import "@fontsource-variable/jetbrains-mono";
 import "@fontsource-variable/jetbrains-mono/wght-italic.css";
 import "../styles/cyberpunk.css";
 
+import fontUrl from "@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url";
 import ConfigCarrier from "@components/ConfigCarrier.astro";
 import { ga4Config, profileConfig, siteConfig } from "@/config";
 import {
@@ -101,6 +102,10 @@ const bannerOffset =
 
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
+
+		<!-- Preload critical font to avoid waterfall delay -->
+		<link rel="preload" href={fontUrl} as="font" type="font/woff2" crossorigin />
+
 		{favicons.map(favicon => (
 			<link rel="icon"
 				  href={favicon.src.startsWith('/') ? url(favicon.src) : favicon.src}
