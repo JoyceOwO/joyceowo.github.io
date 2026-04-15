@@ -4,6 +4,7 @@ export type SiteConfig = {
 	title: string;
 	titleEn?: string;
 	subtitle: string;
+	subtitleEn?: string;
 
 	lang:
 		| "en"
