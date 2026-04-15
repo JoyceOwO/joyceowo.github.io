@@ -29,6 +29,7 @@ export default defineConfig({
 	site: "https://joyceowo.github.io/",
 	base: "/",
 	trailingSlash: "always",
+	compressHTML: true,
 	i18n: {
 		defaultLocale: "zh-tw",
 		locales: ["zh-tw", "en"],
@@ -162,7 +163,20 @@ export default defineConfig({
 	},
 	vite: {
 		build: {
+			cssCodeSplit: false,
 			rollupOptions: {
+				output: {
+					manualChunks(id) {
+						// Bundle Svelte runtime + components into one chunk
+						if (id.includes('node_modules/svelte')) {
+							return 'svelte-vendor';
+						}
+						// Bundle utility modules together
+						if (id.includes('/utils/') || id.includes('/constants/')) {
+							return 'app-utils';
+						}
+					},
+				},
 				onwarn(warning, warn) {
 					// temporarily suppress this warning
 					if (
