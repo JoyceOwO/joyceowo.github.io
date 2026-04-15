@@ -41,6 +41,13 @@ const bio = isEn ? config.bioEn || config.bio : config.bio;
                 {config.links[0].name}
             </a>}
         </div>
+        {config.sponsorUrl && (
+            <a href={config.sponsorUrl} target="_blank" aria-label="Sponsor"
+               class="btn-regular rounded-lg h-9 w-full gap-2 px-3 font-bold active:scale-95 mt-1 text-sm">
+                <Icon name="fa6-brands:paypal" class="text-[1.2rem]"></Icon>
+                Buy Me a Coffee ☕
+            </a>
+        )}
     </div>
 </div>
 
