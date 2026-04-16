@@ -29,7 +29,7 @@ lang: "en"
   - Host (on-premises service IP / hostname)
   - Port (e.g., 1433 / 80 / 443)
 - Essentially, Azure helps you establish a 'relay channel', not a direct connection
-![image](../../../assets/notion-images/23ba78ea09fa815faea3c2deb4cdcc98/23ba78ea09fa815faea3c2deb4cdcc98-7255d1681c2.png)
+![image](../../../assets/notion-images/23ba78ea09fa815faea3c2deb4cdcc98/23ba78ea09fa815faea3c2deb4cdcc98-7255d168e1c2.png)
 
 ### 2. Bind Web App to Hybrid Connection
 
