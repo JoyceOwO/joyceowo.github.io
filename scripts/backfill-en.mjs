@@ -72,6 +72,57 @@ function buildFrontmatterBlock(original, enTitle, enDescription) {
     .join("\n");
 }
 
+function normalizeImagePathForEn(imagePath) {
+  if (imagePath.startsWith("../../assets/")) {
+    return imagePath.replace("../../assets/", "../../../assets/");
+  }
+  return imagePath;
+}
+
+function protectImageMarkdown(markdown) {
+  const tokens = [];
+  let index = 0;
+
+  const protectedContent = markdown.replace(
+    /!\[([^\]]*)\]\(([^)\s]+)(\s+"[^"]*")?\)/g,
+    (_match, altText, imagePath, titlePart = "") => {
+      const token = `__IMG_TOKEN_${index++}__`;
+      const normalizedPath = normalizeImagePathForEn(imagePath);
+      const restored = `![${altText}](${normalizedPath}${titlePart})`;
+      tokens.push({ token, restored });
+      return token;
+    },
+  );
+
+  return { protectedContent, tokens };
+}
+
+function restoreImageTokens(markdown, tokens) {
+  let restored = markdown;
+  for (const { token, restored: imageMarkdown } of tokens) {
+    restored = restored.split(token).join(imageMarkdown);
+  }
+  return restored;
+}
+
+function validateImagePathsInContent(content, targetFilePath) {
+  const missingPaths = [];
+  const imageRegex = /!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+  let match;
+
+  while ((match = imageRegex.exec(content)) !== null) {
+    const imagePath = match[1];
+    if (/^(https?:)?\/\//.test(imagePath)) continue;
+
+    const absolute = path.resolve(path.dirname(targetFilePath), imagePath);
+    if (!fs.existsSync(absolute)) {
+      missingPaths.push(imagePath);
+    }
+  }
+
+  return [...new Set(missingPaths)];
+}
+
 // ============================================================
 // Gemini 翻譯
 // ============================================================
@@ -93,6 +144,7 @@ STRICT RULES:
 5. Translate technical terms accurately; keep well-known identifiers unchanged (SQL, GitHub, NuGet, etc.).
 6. Return ONLY a valid JSON object with exactly three string keys: "title", "description", "content".
 7. Do NOT wrap the JSON in markdown fences or add any extra text.
+8. Content may include placeholders like __IMG_TOKEN_0__. Keep EVERY placeholder string EXACTLY unchanged.
 
 Input:
 title: ${title}
@@ -246,14 +298,23 @@ async function main() {
     );
 
     try {
-      const { title: enTitle, description: enDescription, content: enContentRaw } =
-        await geminiTranslate(title, description, mdContent);
+      const { protectedContent, tokens: imageTokens } =
+        protectImageMarkdown(mdContent);
 
-      // en/ 子目錄比 posts/ 多一層，調整圖片相對路徑
-      const enContent = enContentRaw.replace(
-        /!\[([^\]]*)\]\(\.\.\/\.\.\/assets\//g,
-        "![$1](../../../assets/",
+      const { title: enTitle, description: enDescription, content: enContentRaw } =
+        await geminiTranslate(title, description, protectedContent);
+
+      const missingTokens = imageTokens.filter(
+        ({ token }) => !enContentRaw.includes(token),
       );
+      if (missingTokens.length > 0) {
+        throw new Error(
+          `Translation dropped ${missingTokens.length} image token(s); aborting to prevent broken image paths.`,
+        );
+      }
+
+      // 還原翻譯前保護的圖片標記，確保檔名與路徑不被模型改寫
+      const enContent = restoreImageTokens(enContentRaw, imageTokens);
 
       // 重組 frontmatter（替換 title / description / lang）
       let enFm = originalFm;
@@ -273,6 +334,14 @@ async function main() {
       }
 
       fs.writeFileSync(enPath, enFm + enContent, "utf-8");
+
+      const missingImagePaths = validateImagePathsInContent(enContent, enPath);
+      if (missingImagePaths.length > 0) {
+        console.log(
+          ` ⚠️  發現 ${missingImagePaths.length} 個不存在的圖片路徑：${missingImagePaths.join(", ")}`,
+        );
+      }
+
       console.log(" ✅");
       succeeded++;
     } catch (err) {
