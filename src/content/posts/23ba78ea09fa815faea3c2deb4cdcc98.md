@@ -1,7 +1,7 @@
 ---
 title: "Azure Hybrid Connection 實戰：讓雲端安全連回地端服務"
 published: 2025-07-25
-updated: 2026-04-15
+updated: 2026-04-16
 description: ""
 tags:
   - "Azure"
